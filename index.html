@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .required:after { content: " *"; color: red; }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #4CAF50; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; }
+        .qr-container { text-align: center; margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc; }
+        .qr-container img { max-width: 200px; }
+        .note { font-size: 14px; color: #666; margin-bottom: 10px; font-style: italic; }
+        .thank-you { display: none; text-align: center; padding: 20px; background: #dff0d8; border-radius: 4px; color: #3c763d; }
+        .error { color: red; font-size: 14px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Registration Form</h1>
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="studentName" class="required">Student Name</label>
+                <input type="text" id="studentName" name="studentName" required>
+                <div id="studentNameError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="fatherName" class="required">Father's Name</label>
+                <input type="text" id="fatherName" name="fatherName" required>
+                <div id="fatherNameError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="telegramNumber" class="required">Telegram Number</label>
+                <input type="tel" id="telegramNumber" name="telegramNumber" required>
+                <div id="telegramNumberError" class="error"></div>
+            </div>
+            
+            <div class="qr-container">
+                <div style="font-weight:bold">Payment by QR Scan</div>
+                <img src="ravi.png" alt="Payment QR Code">
+                <div>Scan this QR code to make payment</div>
+            </div>
+            
+            <div class="form-group">
+                <div class="note">(केवल ऑनलाइन भुगतान करने वाले छात्रों के लिए - UTR नंबर दर्ज करना अनिवार्य है)</div>
+                <label for="utrNumber">UTR No</label>
+                <input type="text" id="utrNumber" name="utrNumber" placeholder="Enter UTR number if paid online">
+                <div id="utrNumberError" class="error"></div>
+            </div>
+            
+            <button type="submit">Submit Registration</button>
+        </form>
+        
+        <div id="thankYouMessage" class="thank-you">
+            <h2>Thank You for Registration!</h2>
+            <p>Your registration has been successfully submitted.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+            
+            // Get form values
+            const formData = {
+                studentName: document.getElementById('studentName').value.trim(),
+                fatherName: document.getElementById('fatherName').value.trim(),
+                telegramNumber: document.getElementById('telegramNumber').value.trim(),
+                utrNumber: document.getElementById('utrNumber').value.trim()
+            };
+            
+            // Basic validation
+            let isValid = true;
+            
+            if (!formData.studentName) {
+                document.getElementById('studentNameError').textContent = 'Student name is required';
+                isValid = false;
+            }
+            
+            if (!formData.fatherName) {
+                document.getElementById('fatherNameError').textContent = "Father's name is required";
+                isValid = false;
+            }
+            
+            if (!formData.telegramNumber) {
+                document.getElementById('telegramNumberError').textContent = 'Telegram number is required';
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            try {
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                // Using URLSearchParams for better compatibility with Google Apps Script
+                const params = new URLSearchParams();
+                for (const key in formData) {
+                    params.append(key, formData[key]);
+                }
+                
+                // Replace with your Google Apps Script Web App URL
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbw0ZyHPVxrXYUNJB-VhkjwPne8Uhot9OLtr8_ot6trF1gC1pUUw_-JcUEParc-4U5DPdw/exec';
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    body: params,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                });
+                
+                if (response.ok) {
+                    document.getElementById('registrationForm').style.display = 'none';
+                    document.getElementById('thankYouMessage').style.display = 'block';
+                } else {
+                    throw new Error('Submission failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('There was an error submitting the form. Please try again.');
+            } finally {
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Registration';
+            }
+        });
+    </script>
+</body>
+</html>
